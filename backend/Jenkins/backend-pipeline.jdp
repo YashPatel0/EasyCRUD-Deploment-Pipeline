@@ -35,9 +35,9 @@ pipeline {
             steps {
                 sh '''
                     cd backend
-                    docker build -t yashpatel017/easycrud_backend_deployment .
-                    docker push yashpatel017/easycrud_backend_deployment
-                    docker rmi yashpatel017/easycrud_backend_deployment
+                    docker build -t yashpatel017/easycrud_backend_deployment:v1 .
+                    docker push yashpatel017/easycrud_backend_deployment:v1
+                    docker rmi yashpatel017/easycrud_backend_deployment:v1
                 '''
             }
         }
