@@ -66,6 +66,13 @@ pipeline {
                         ).trim()
                     }
                     echo "Backend URL: ${env.BACKEND}"
+
+                    // frontend job name
+                    build job: 'frontend-pipeline',
+                    parameters: [
+                        string(name: 'BACKEND_URL', value: backendUrl)
+                    ]
+
                 }
             }
         }

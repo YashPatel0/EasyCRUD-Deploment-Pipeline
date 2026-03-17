@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: studentapp-frontend
-        image: yashpatel017/easycrud_frontend:v1
+        image: yashpatel017/easycrud_frontend_deployment:v1
         resources:
           limits:
             memory: "256Mi"
