@@ -70,7 +70,7 @@ pipeline {
                     // frontend job name
                     build job: 'frontend-pipeline',
                     parameters: [
-                        string(name: 'BACKEND_URL', value: backendUrl)
+                        string(name: 'BACKEND_URL', value: env.BACKEND)
                     ]
 
                 }
