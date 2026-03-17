@@ -32,7 +32,7 @@ pipeline {
         }
         stage ('DEPLOY'){
             steps{
-                echo 'DEPLOY SUCCESS'
+                echo 'DEPLOY SUCCESS CHECK'
             }
         }
     }
