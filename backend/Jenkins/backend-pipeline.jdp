@@ -1,5 +1,10 @@
 pipeline {
     agent any
+
+    parameters {
+        string(name: 'BACKEND_URL', defaultValue: '', description: 'Optional: Provide Backend LoadBalancer URL')
+    }
+
     stages {
         stage('PULL'){
             steps{
@@ -49,5 +54,21 @@ pipeline {
                 '''
             }
         }
+        stage('GET BACKEND URL'){
+            steps{
+                script {
+                    if (params.BACKEND_URL) {
+                        env.BACKEND = params.BACKEND_URL
+                    } else {
+                        env.BACKEND = sh(
+                            script: "kubectl get svc studentapp-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
+                            returnStdout: true
+                        ).trim()
+                    }
+                    echo "Backend URL: ${env.BACKEND}"
+                }
+            }
+        }
+
     }
 }
