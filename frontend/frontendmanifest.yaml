@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studentapp-frontend
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: studentapp-frontend
+  template:
+    metadata:
+      labels:
+        app: studentapp-frontend
+    spec:
+      containers:
+      - name: studentapp-frontend
+        image: yashpatel017/easycrud_frontend:v1
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "400m"
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: studentapp-frontend-svc
+spec:
+  selector:
+    app: studentapp-frontend
+  ports:
+  - port: 80
+    targetPort: 80
