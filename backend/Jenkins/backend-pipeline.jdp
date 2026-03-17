@@ -17,9 +17,10 @@ pipeline {
         stage ('TEST'){
             steps{
                 withSonarQubeEnv(installationName: 'easycrud sonar', credentialsId: 'easycrud-key') {
-                    sh '''cd backend
+                    sh '''
+                        cd backend
                         mvn sonar:sonar -Dsonar.projectKey='easycurd-pipeline'
-                        '''
+                    '''
                 }
             }
         }
@@ -30,9 +31,22 @@ pipeline {
                 }                
             }
         }
+        stage('Build Docker Image'){
+            steps {
+                sh '''
+                    cd backend
+                    docker build -t yashpatel017/easycrud_backend_deployment .
+                    docker push yashpatel017/easycrud_backend_deployment
+                    docker rmi yashpatel017/easycrud_backend_deployment
+                '''
+            }
+        }
         stage ('DEPLOY'){
             steps{
-                echo 'DEPLOY SUCCESS CHECK'
+                sh '''
+                    cd backend
+                    kubectl apply -f backendmanifest.yaml
+                '''
             }
         }
     }
