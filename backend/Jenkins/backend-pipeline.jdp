@@ -1,6 +1,39 @@
 pipeline {
     agent any
     stages {
-        
+        stage('PULL'){
+            steps{
+                git branch: 'main', url: 'https://github.com/YashPatel0/EasyCRUD-Deploment-Pipeline.git'
+            }
+        }
+        stage ('BUILD'){
+            steps{
+                sh '''
+                    cd backend
+                    mvn clean package -DskipTests
+                '''
+            }
+        }
+        stage ('TEST'){
+            steps{
+                withSonarQubeEnv(installationName: 'easycrud sonar', credentialsId: 'easycrud-key') {
+                    sh '''cd backend
+                        mvn sonar:sonar -Dsonar.projectKey='easycurd-pipeline'
+                        '''
+                }
+            }
+        }
+        stage ('QUALITY-GATE'){
+            steps{
+                timeout(10) {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'easycrud-key'
+                }                
+            }
+        }
+        stage ('DEPLOY'){
+            steps{
+                echo 'DEPLOY SUCCESS'
+            }
+        }
     }
 }
