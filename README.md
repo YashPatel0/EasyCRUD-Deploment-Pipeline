@@ -291,44 +291,80 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'BACKEND_URL', defaultValue: '', description: 'Backend URL')
+        string(name: 'BACKEND_URL', defaultValue: '', description: 'Optional: Provide Backend LoadBalancer URL')
     }
 
     stages {
-
         stage('PULL'){
             steps{
                 git branch: 'main', url: 'https://github.com/YashPatel0/EasyCRUD-Deploment-Pipeline.git'
             }
         }
-
-        stage('SET ENV'){
+        stage ('BUILD'){
             steps{
-                sh """
-                echo 'VITE_API_URL="http://${params.BACKEND_URL}:8080/api"' > frontend/.env
-                """
+                sh '''
+                    cd backend
+                    mvn clean package -DskipTests
+                '''
             }
         }
-
-        stage('BUILD FRONTEND'){
+        stage ('TEST'){
             steps{
+                withSonarQubeEnv(installationName: 'easycrud sonar', credentialsId: 'easycrud-key') {
+                    sh '''
+                        cd backend
+                        mvn sonar:sonar -Dsonar.projectKey='easycurd-pipeline'
+                    '''
+                }
+            }
+        }
+        stage ('QUALITY-GATE'){
+            steps{
+                timeout(10) {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'easycrud-key'
+                }                
+            }
+        }
+        stage('Build Docker Image'){
+            steps {
                 sh '''
-                    cd frontend
-                    npm install
-                    npm run build
+                    cd backend
+                    docker build -t yashpatel017/easycrud_backend_deployment:v1 .
+                    docker push yashpatel017/easycrud_backend_deployment:v1
+                    docker rmi yashpatel017/easycrud_backend_deployment:v1
                 '''
             }
-        }  
-
-
-        stage('Move to S3'){
+        }
+        stage ('DEPLOY'){
             steps{
                 sh '''
-                    cd frontend
-                    aws s3 sync dist/ s3://my-demo-buxxx/ --delete
+                    cd backend
+                    kubectl apply -f backendmanifest.yaml
                 '''
             }
-        }  
+        }
+        stage('GET BACKEND URL'){
+            steps{
+                script {
+                    if (params.BACKEND_URL) {
+                        env.BACKEND = params.BACKEND_URL
+                    } else {
+                        env.BACKEND = sh(
+                            script: "kubectl get svc studentapp-svc -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
+                            returnStdout: true
+                        ).trim()
+                    }
+                    echo "Backend URL: ${env.BACKEND}"
+
+                    // frontend job name
+                    build job: 'frontend-pipeline',
+                    parameters: [
+                        string(name: 'BACKEND_URL', value: env.BACKEND)
+                    ]
+
+                }
+            }
+        }
 
     }
 }
