@@ -370,9 +370,8 @@ pipeline {
 }
 
 ``` 
-* Update the Deployment.yaml file
-* Add image name inside Deployment.yaml
-
+* Update the backendmanifest.yaml file
+* Add image name inside backendmanifest.yaml
 ### Step 7: Create Frontend Pipeline
 ```
 pipeline {
